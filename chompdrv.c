@@ -7,11 +7,6 @@
 #include <fcntl.h>
 
 
-int open_chompstick(){
-
-	//chompstick_fd = open(
-	return 0;
-}
 
 void emit(int fd, int type, int code, int val){
 	struct input_event ie;
