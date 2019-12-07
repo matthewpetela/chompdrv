@@ -75,24 +75,27 @@ int main(){
 	ioctl(fd, UI_SET_KEYBIT, BTN_A);
 
 	ioctl(fd, UI_SET_EVBIT, EV_ABS);
+	
 	ioctl(fd, UI_SET_ABSBIT, ABS_X);
 	ioctl(fd, UI_SET_ABSBIT, ABS_Y);
 
 	struct uinput_user_dev usetup;
 
 	memset(&usetup, 0, sizeof(usetup));
+	
 	usetup.id.bustype = BUS_USB;
 	usetup.id.vendor = 0x9A7A;
 	usetup.id.product = 0xBA17;
+	usetup.id.version = 1;
 	strcpy(usetup.name, "ChompStick");
 	//write(fd, &usetup, sizeof(usetup));
 	
 
-	/*usetup.absmax[ABS_X] = 32767;
+	usetup.absmax[ABS_X] = 32767;
 	usetup.absmin[ABS_X] = -32767;
 	usetup.absmax[ABS_Y] = 32767;
 	usetup.absmin[ABS_Y] = -32767;
-	*/
+	
 	//ioctl(fd, UI_DEV_SETUP, &usetup);
 	//ioctl(fd, UI_DEV_CREATE);
 
@@ -125,8 +128,9 @@ int main(){
 		printf("Couldn't set r/w");
 	}
 
-
-	int temp_it = 0;
+	//wait(1);
+	sleep(2);
+	//int temp_it = 0;
 
 while(true){
 
@@ -134,11 +138,11 @@ while(true){
 
 	unsigned char buff[2];
 	int len = 2;
-	ret_val = libusb_interrupt_transfer(device, 0x81, buff, sizeof(buff), &len, 0);
+	ret_val = libusb_interrupt_transfer(device, 0x81, buff, sizeof(buff), &len, 2345);
 
 	if (ret_val != 0){
 		printf("Error, couldn't transfer\n");
-		return 1;
+		break;
 	}
 
 
@@ -178,39 +182,39 @@ while(true){
 		//printf("right");
 		//x_ax = 3;
 		val = val - 12;
-		emit(fd, EV_KEY, ABS_X, 32767);
+		emit(fd, EV_ABS, ABS_X, 32767);
 		emit(fd, EV_SYN, SYN_REPORT, 0);
 	}
 	else if(val - 8 > 0 && val - 12 < 0){
 		//printf("no x");
 		//x_ax = 2;
 		val = val - 8;
-		emit(fd, EV_KEY, ABS_X, 0);
+		emit(fd, EV_ABS, ABS_X, 0);
 		emit(fd, EV_SYN, SYN_REPORT, 0);
 	}
 	else{
 		//printf("left");
 		//x_ax = 1;
 		val = val - 4;
-		emit(fd, EV_KEY, ABS_X, -32767);
+		emit(fd, EV_ABS, ABS_X, -32767);
                 emit(fd, EV_SYN, SYN_REPORT, 0);
 	}
 	if (val == 3){
 		//y_ax = 3;
 		//printf("up");
-		emit(fd, EV_KEY, ABS_Y, 32767);
+		emit(fd, EV_ABS, ABS_Y, -32767);
                 emit(fd, EV_SYN, SYN_REPORT, 0);
 	}
 	else if (val == 2){
 		//y_ax = 2;
 		//printf("no y");
-		emit(fd, EV_KEY, ABS_Y, 0);
+		emit(fd, EV_ABS, ABS_Y, 0);
                 emit(fd, EV_SYN, SYN_REPORT, 0);
 	}
 	else{
 		//y_ax = 1;
 		//printf("down");
-		emit(fd, EV_KEY, ABS_Y, -32767);
+		emit(fd, EV_ABS, ABS_Y, 32767);
                 emit(fd, EV_SYN, SYN_REPORT, 0);
 	}
 	
@@ -219,14 +223,18 @@ while(true){
 	//printf("%d %d %d", button, x_ax, y_ax);
 	//int test = val[0];
 
+	/*
 	temp_it++;
-	if (temp_it > 45000){
+	if (temp_it > 450){
 		break;
-	}
+	}*/
 
 }
 	libusb_release_interface(device, 0);
-	libusb_close(device);
-	libusb_exit(session);
+	ioctl(fd, UI_DEV_DESTROY);
+	close(fd);
+	//libusb_release_interface(device, 0);
+	//libusb_close(device);
+	//libusb_exit(session);
 	return 0;
 }
